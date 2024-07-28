@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Droid+Sans' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="croutonjs/crouton.min.css" />
+    <link href="map.css" rel="stylesheet" type="text/css" />
+    <style>
+        .bmlt-column4 > #share-button {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div style="text-align: center">
+    <div style="display: block">
+        <h1>Meetings in <span id="province-title"></span></h1>
+    </div>
+    <div style="display: block">
+        <span id="meeting-count"></span>, <span id="group-count"></span>
+    </div>
+    <!--    <div style="display: block">-->
+    <!--        <button id="paper_schedule">Paper Schedule</button>-->
+    <!--    </div>-->
+    <div style="display: inline-block">
+        <div class="lds-css ng-scope"><div class="lds-ellipsis"><div><div></div></div><div><div></div></div><div><div></div></div><div><div></div></div><div><div></div></div></div></div>
+    </div>
+</div>
+<div id="bmlt-tabs"></div>
+</body>
+<script src="croutonjs/crouton.min.js"></script>
+<script type="text/javascript">
+    function getUrlParameter(name) {
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+
+    var crouton = new Crouton({
+        "root_server": "https://tomato.bmltenabled.org/main_server/",
+        "show_map": true,
+        "google_api_key": "AIzaSyBZLdfzGAie2IjuZl5laYZMjaEtuFnmd-o",
+        "template_path": "croutonjs/templates",
+        "has_areas": true,
+        "default_filter_dropdown": "venues=in-person",
+        "button_filters": [
+            {'title': 'City', 'field': 'location_municipality'},
+        ],
+        "custom_query": "&services=-490&recursive=1&meeting_key=location_province&meeting_key_value=NJ",  // filtering out Western Australia by excluding all of that region.
+        "language": getUrlParameter('language') === "" ? "en-US" : getUrlParameter('language'),
+        "theme": "florida-nights",
+        "filter_tabs": true,
+        "on_complete": function() {
+            jQuery(".lds-css").hide();
+        },
+        "metadata_template": [
+            "{{#isVirtualOrHybrid this}}",
+            "    {{#isHybrid this}}",
+            "        <div class='meetsVirtually'><span class='glyphicon glyphicon-cloud-upload'></span> {{meetsHybrid this}}</div>",
+            "    {{else}}",
+            "        <div class='meetsVirtually'><span class='glyphicon glyphicon-cloud'></span> {{meetsVirtually this}}</div>",
+            "    {{/isHybrid}}",
+            "    {{#if this.virtual_meeting_link}}",
+            "        <div><span class='glyphicon glyphicon-globe'></span> {{webLinkify this.virtual_meeting_link}}</div>",
+            "        {{#if this.show_qrcode}}",
+            "            <div class='qrcode'>{{qrCode this.virtual_meeting_link}}</div>",
+            "        {{/if}}",
+            "    {{/if}}",
+            "    {{#if this.phone_meeting_number}}",
+            "        <div><span class='glyphicon glyphicon-earphone'></span> {{phoneLinkify this.phone_meeting_number}}</div>",
+            "        {{#if this.show_qrcode}}",
+            "            <div class='qrcode'>{{qrCode this.phone_meeting_number}}</div>",
+            "        {{/if}}",
+            "    {{/if}}",
+            "{{/isVirtualOrHybrid}}",
+            "{{#isNotTemporarilyClosed this}}",
+            "    {{#unless (hasFormats 'VM' this)}}",
+            "        <div>",
+            "            <a id='map-button' class='btn btn-primary btn-xs'",
+            "                href='https://www.google.com/maps/search/?api=1&query={{this.latitude}},{{this.longitude}}&q={{this.latitude}},{{this.longitude}}'",
+            "                target='_blank' rel='noopener noreferrer'>",
+            "                <span class='glyphicon glyphicon-map-marker'></span> {{this.map_word}}</a>",
+            "        </div>",
+            "        <div class='geo hide'>{{this.latitude}},{{this.longitude}}</div>",
+            "    {{/unless}}",
+            "{{/isNotTemporarilyClosed}}",
+            "<a href=\"javascript:void(0);\" id=\"share-button\" class=\"btn btn-primary btn-xs\" onClick=\"navigator.share({ text: '{{this.formatted_day}} {{this.start_time_formatted}} - {{this.end_time_formatted}} {{this.meeting_name}} {{this.location_text}} {{this.formatted_address}} {{this.formatted_location_info}}{{#if this.virtual_meeting_additional_info}} {{this.virtual_meeting_additional_info}}{{/if}}', url: '{{#isVirtualOrHybrid this}}{{#if this.virtual_meeting_link}}{{this.virtual_meeting_link}}{{/if}}{{#if this.phone_meeting_number}}{{this.phone_meeting_number}}{{/if}}{{/isVirtualOrHybrid}}{{#isInPersonOrHybrid this}} https://www.google.com/maps/search/?api=1&amp;query={{this.latitude}},{{this.longitude}}&amp;q={{this.latitude}},{{this.longitude}}{{/isInPersonOrHybrid}}'})\"><span class=\"glyphicon glyphicon-share\"></span> {{this.share_word}}</a>",
+            "</td><td class='bmlt-column4'><div><i>{{this.serviceBodyName}}<br>{{webLinkify this.serviceBodyUrl}}<br>{{phoneLinkify this.serviceBodyPhone}}</i></div>"
+        ].join('\n')
+    });
+    document.getElementById("province-title").innerText = getUrlParameter('province_name');
+    crouton.render();
+    crouton.meetingCount(function(res) {
+        document.getElementById("meeting-count").innerHTML = "Meetings: " + res;
+    });
+    crouton.groupCount(function(res) {
+        document.getElementById("group-count").innerHTML = "Groups: " + res;
+    });
+    jQuery("#paper_schedule").click(function() {
+        window.open('https://demo.bmlt.app/?current-meeting-list=5&querystring_custom_1=New%20Jersey&custom_query=%26meeting_key%3Dlocation_province%26meeting_key_value%3DNJ', '_blank');
+    });
+</script>
+</html>
