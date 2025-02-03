@@ -19,6 +19,15 @@
     <div style="display: block">
         <span id="meeting-count"></span>, <span id="group-count"></span>
     </div>
+    <div>
+        <a href="/?day=1">Sunday</a> /
+        <a href="/?day=2">Monday</a> /
+        <a href="/?day=3">Tuesday</a> /
+        <a href="/?day=4">Wednesday</a> /
+        <a href="/?day=5">Thursday</a> /
+        <a href="/?day=6">Friday</a> /
+        <a href="/?day=7">Saturday</a>
+    </div>
     <!--    <div style="display: block">-->
     <!--        <button id="paper_schedule">Paper Schedule</button>-->
     <!--    </div>-->
@@ -37,6 +46,10 @@
         return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
+    function getDayOfTheWeek() {
+        return getUrlParameter("day") !== "" ? "&weekdays=" + getUrlParameter("day") : ""
+    }
+
     var crouton = new Crouton({
         "root_server": "https://tomato.bmltenabled.org/main_server/",
         "show_map": true,
@@ -47,7 +60,7 @@
         "button_filters": [
             {'title': 'City', 'field': 'location_municipality'},
         ],
-        "custom_query": "&services=-490&recursive=1&meeting_key=location_province&meeting_key_value=NJ",  // filtering out Western Australia by excluding all of that region.
+        "custom_query": "&services=-490&recursive=1&meeting_key=location_province&meeting_key_value=NJ" + getDayOfTheWeek(),  // filtering out Western Australia by excluding all of that region.
         "language": getUrlParameter('language') === "" ? "en-US" : getUrlParameter('language'),
         "theme": "florida-nights",
         "filter_tabs": true,
