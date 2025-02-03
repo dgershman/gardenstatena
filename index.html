@@ -20,6 +20,7 @@
         <span id="meeting-count"></span>, <span id="group-count"></span>
     </div>
     <div>
+        <a href="/">All</a> /
         <a href="/?day=1">Sunday</a> /
         <a href="/?day=2">Monday</a> /
         <a href="/?day=3">Tuesday</a> /
@@ -64,6 +65,7 @@
         "language": getUrlParameter('language') === "" ? "en-US" : getUrlParameter('language'),
         "theme": "florida-nights",
         "filter_tabs": true,
+        "clustering": 1,
         "on_complete": function() {
             jQuery(".lds-css").hide();
         },
